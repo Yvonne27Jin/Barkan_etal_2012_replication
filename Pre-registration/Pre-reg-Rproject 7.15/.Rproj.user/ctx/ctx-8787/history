@@ -1,0 +1,2 @@
+library(haven, dplyr, tidyverse,jmv, apaTables, arsenal, ggstatsplot,QuantPsyc)
+install.packages("jmv")

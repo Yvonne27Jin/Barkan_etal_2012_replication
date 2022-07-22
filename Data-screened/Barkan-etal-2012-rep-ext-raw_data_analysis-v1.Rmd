@@ -3,8 +3,8 @@ title: "Barkan etal (2012) data analysis using raw data - V1"
 author: "Yvonne JIN"
 date: "7/19/2022"
 output:
-  html_document: default
   word_document: default
+  html_document: default
   pdf_document: default
 ---
 
@@ -38,6 +38,25 @@ df_recall <- df %>% dplyr::select("RecallComprDissoWri":"Recall_Check2_negati")
 
 # Study response processing
 
+## participant screening
+Screen out those not met the pre-survey validation questions.
+```{R screening}
+
+# screen out the participants flagged as likely to be bots or duplicates
+# criteria provided by Qualtrics: https://www.qualtrics.com/support/survey-platform/survey-module/survey-checker/fraud-detection/
+df <- df %>% filter(Q_RecaptchaScore >= 0.5 & Q_RelevantIDDuplicate != "true" & Q_RelevantIDDuplicateScore < 75 & Q_RelevantIDFraudScore <30)
+#1050 -> 986
+
+# screen out the participants not agreed to the validation questions before survey
+df <- df %>% filter(consentagree_1 == 1 & outline1 == 1 & outline2 == 1 & englishnative == 1 & writing_check == 1)
+# 986 -> 930
+
+# check distribution of survey duration
+hist(df$Duration__in_seconds_)
+summary(df$Duration__in_seconds_)
+
+# will screen out the partcipants that fail to answer the validation question of recall manipulation in the "Condition marking" section below.
+```
 General measurements score calculation: Manipulation check and MASC uses averaged score of individual items.
 
 ## Manipulation Check - Self Esteem Scale
@@ -147,7 +166,7 @@ ethi_dis_write <- df %>% filter(FL_9_DO_RecallManipulation_EthicalDissonancebyWr
          starts_with("Exp2"),
          "MASC_set1", "MASC_set2", "MASC_set3", # precalculated average
          "BIDR_self_deceptive","BIDR_impre_manage", # precalculated
-         age:CountryName) %>% #demographic data and condition marker
+         age:CountryName, Duration__in_seconds_) %>% #demographic data and condition marker
   mutate(condition = "Dissonance_write")
 
 ethi_dis_write <- ethi_dis_write %>% filter(RecallComprDissoWri == 1 & RecallCheck2DissoWri == 1)
@@ -161,7 +180,7 @@ ethi_dis_nowrite <- df %>% filter(FL_9_DO_RecallManipulation_EthicalDissonanceWi
          starts_with("Exp2"),
          "MASC_set1", "MASC_set2", "MASC_set3", 
          "BIDR_self_deceptive","BIDR_impre_manage", 
-         age:CountryName) %>% 
+         age:CountryName, Duration__in_seconds_) %>% 
   mutate(condition = "Dissonance_no_write")
 
 ethi_dis_nowrite <- ethi_dis_nowrite %>% filter(RecallComprDissNWri == 1 & RecallCheck2DissNWri == 1)
@@ -175,7 +194,7 @@ con_worthy <- df %>% filter(FL_9_DO_RecallManipulation_WorthyConduct == 1) %>%
          starts_with("Exp2"),
          "MASC_set1", "MASC_set2", "MASC_set3",
          "BIDR_self_deceptive","BIDR_impre_manage",
-         age:CountryName) %>%
+         age:CountryName, Duration__in_seconds_) %>%
   mutate(condition = "Worthy") # control condition: worthy conduct
 
 con_worthy <- con_worthy %>% filter(RecallComprehWorthy == 4 & Recall_Check2_Worthy == 2)
@@ -189,13 +208,14 @@ con_neutral <- df %>% filter(FL_9_DO_RecallManipulation_Neutral == 1) %>%
          starts_with("Exp2"),
          "MASC_set1", "MASC_set2", "MASC_set3",
          "BIDR_self_deceptive","BIDR_impre_manage",
-         age:CountryName) %>% 
+         age:CountryName, Duration__in_seconds_) %>% 
   mutate(condition = "Neutral") # control condition: Neutral behavior
 
 hist(con_neutral$Recall_Check2_neutra)
 # more than 70 participants chose 2: Happy / Fulfilled / Wholesome instead of 4: Normal / Peaceful / As usual
+#con_neutral <- con_neutral %>% filter(Recall_Compr_Neutral == 2 & (Recall_Check2_neutra == 4 | Recall_Check2_neutra == 2) )
 
-con_neutral <- con_neutral %>% filter(Recall_Compr_Neutral == 2 & (Recall_Check2_neutra == 4 | Recall_Check2_neutra == 2) )
+con_neutral <- con_neutral %>% filter(Recall_Compr_Neutral == 2 & Recall_Check2_neutra == 4 )
 
 ## control: negative event
 con_nega <- df %>% filter(FL_9_DO_RecallManipulation_NegativeValence ==1) %>%
@@ -206,7 +226,7 @@ con_nega <- df %>% filter(FL_9_DO_RecallManipulation_NegativeValence ==1) %>%
          starts_with("Exp2"),
          "MASC_set1", "MASC_set2", "MASC_set3",
          "BIDR_self_deceptive","BIDR_impre_manage",
-         age:CountryName) %>%
+         age:CountryName, Duration__in_seconds_) %>%
   mutate(condition = "Negative") # control condition: negative valence
 
 con_nega <- con_nega %>% filter(Recall_Compr_negativ == 3 & Recall_Check2_negati == 3)
@@ -216,14 +236,17 @@ con_nega <- con_nega %>% filter(Recall_Compr_negativ == 3 & Recall_Check2_negati
 
 Combine data segments with condition marking. 
 ```{r combine processed variables}
-cleaned_df <- ethi_dis_write[5:42] %>% 
-  rbind(ethi_dis_nowrite[5:42]) %>%
-  rbind(con_worthy[5:42]) %>%
-  rbind(con_neutral[5:42]) %>%
-  rbind(con_nega[5:42]) 
-
+cleaned_df <- ethi_dis_write[5:43] %>% 
+  rbind(ethi_dis_nowrite[5:43]) %>%
+  rbind(con_worthy[5:43]) %>%
+  rbind(con_neutral[5:43]) %>%
+  rbind(con_nega[5:43]) 
+# 930 -> 765
 colnames(cleaned_df)
 
+# check distribution of survey duration in the cleaned dataset 
+hist(cleaned_df$Duration__in_seconds_)
+summary(cleaned_df$Duration__in_seconds_)
 ```
 # Response formatting for study 1 and study 2 DVs
 Change the data type of DVs to numeric, so the ANOVA test and ggstatsplot works properly.
@@ -243,7 +266,7 @@ cleaned_df$Exp2_S2_guide_other_T2 = coalesce(cleaned_df$Exp2_S2F_guide_other,cle
 
 ```{r output processed data}
 # output cleaned data
-write.csv(cleaned_df, "cleaned_data_0719_screened.csv",fileEncoding = "UTF-8")
+write.csv(cleaned_df, "cleaned_data_0719_screened_812.csv",fileEncoding = "UTF-8")
 ```
 
 # Descriptive data
@@ -352,7 +375,7 @@ ggstatsplot::ggbetweenstats(
 
 ```
 
-```{R ManiCheck output, eval=FALSE, include=TRUE}
+```{R ManiCheck output, echo=TRUE}
 # save the table and plot to local folder. Might interrupt with knitting, hence disabled after export.
 
 apa.aov.table(ANOVA_mani_check, filename = "Manipulation check ANOVA.doc",table.number = 1)
@@ -390,7 +413,7 @@ ggstatsplot::ggbetweenstats(
 
 ```
 
-```{R study1DV1 outout, eval=FALSE, include=TRUE}
+```{R study1DV1 outout, echo=TRUE}
 apa.aov.table(ANOVA_Study1_DV1, filename = "Exp1 DV1 ANOVA.doc",table.number = 2)
 ggsave(
   "Study1DV1Hiring.png", plot = last_plot(),
@@ -421,7 +444,7 @@ ggstatsplot::ggbetweenstats(
     xlab = "Conditions")
 ```
 
-```{R Study1DV2 output, eval=FALSE, include=TRUE}
+```{R Study1DV2 output, echo=TRUE}
 
 apa.aov.table(ANOVA_exp1_DV2, filename = "Exp1 DV2 ANOVA.doc",table.number = 3)
 ggsave(
@@ -454,7 +477,7 @@ ggstatsplot::ggbetweenstats(
     xlab = "Conditions")
 ```
 
-```{R Study1DV3 output, eval=FALSE, include=TRUE}
+```{R Study1DV3 output, echo=TRUE}
 apa.aov.table(ANOVA_exp1_DV3, filename = "Exp1 DV3 ANOVA.doc",table.number = 4)
 ggsave(
   "Study1DV3Honesty.png", plot = last_plot(),
@@ -464,7 +487,7 @@ ggsave(
 ## Study 2 - Repeated ANOVA
 
 Pivot to long format for ggstatsplot.
-```{r study 2 pivot longer}
+```{r study 2 pivot longer, echo=TRUE}
 # add a column of unique participant ID
 cleaned_df <- dplyr::mutate(cleaned_df, ID = row_number())
 
@@ -524,7 +547,7 @@ ggstatsplot::grouped_ggbetweenstats(
   ) 
 ```
 
-```{R Study2DV1 plot, eval=FALSE, include=TRUE}
+```{R Study2DV1 plot, echo=TRUE}
 ggsave(
   "Study2DV1SeenWrong.png", plot = last_plot(),
   width = 11.8, height = 6, dpi = 600)
@@ -566,7 +589,7 @@ ggstatsplot::grouped_ggbetweenstats(
 
 ```
 
-```{R Study2DV2 plot, eval=FALSE, include=TRUE}
+```{R Study2DV2 plot, echo=TRUE}
 ggsave(
   "Study2DV2SelfAction.png", plot = last_plot(),
   width = 11.8, height = 6, dpi = 600)
@@ -607,7 +630,7 @@ ggstatsplot::grouped_ggbetweenstats(
   ) 
 ```
 
-```{R Study2DV3 plot, eval=FALSE, include=TRUE}
+```{R Study2DV3 plot, echo=TRUE}
 ggsave(
   "Study2DV3AdviseOthers.png", plot = last_plot(),
   width = 11.8, height = 6, dpi = 600)
@@ -644,7 +667,7 @@ ggstatsplot::ggbetweenstats(
     title = "Multi Aspect Scale of Cheating (MASC) - Likelihood of others to behave dishonestly")
 ```
 
-```{R Study3 MASC1 output, eval=FALSE, include=TRUE}
+```{R Study3 MASC1 output, echo=TRUE}
 apa.aov.table(ANOVA_study3_MASC1, filename = "Exp3 MASC set1 ANOVA.doc",table.number = 5)
 ggsave(
   "MASC1_Dishonesty_plot.png", plot = last_plot(), 
@@ -676,7 +699,7 @@ ggstatsplot::ggbetweenstats(
     title = "Multi Aspect Scale of Cheating (MASC) - Interpreting common excuses as a lie")
 ```
 
-```{R Study3 set2 output, eval=FALSE, include=TRUE}
+```{R Study3 set2 output, echo=TRUE}
 apa.aov.table(ANOVA_study3_MASC2, filename = "Exp3 MASC set2 ANOVA.doc",table.number = 6)
 ggsave(
   "MASC2_Lie_plot.png", plot = last_plot(), 
@@ -709,7 +732,7 @@ ggstatsplot::ggbetweenstats(
     title = "Multi Aspect Scale of Cheating (MASC) - Likelihood of actors to behave dishonestly in dilemmas")
 ```
 
-```{R Study3 MASC Set3 output, eval=FALSE, include=TRUE}
+```{R Study3 MASC Set3 output, echo=TRUE}
 apa.aov.table(ANOVA_study3_MASC3, filename = "Exp3 MASC set3 ANOVA.doc",table.number = 7)
 ggsave(
   "MASC3_dilemmas_plot.png", plot = last_plot(), 
@@ -744,7 +767,7 @@ ggstatsplot::ggbetweenstats(
     title = "Balanced Inventory of Desirable Responding - Self Deceptive Score")
 ```
 
-```{R Study3 BIDR self ouput, eval=FALSE, include=TRUE}
+```{R Study3 BIDR self ouput, echo=TRUE}
 apa.aov.table(ANOVA_study3_BIDR1, filename = "Exp3 BIDR1 ANOVA.doc",table.number = 8)
 ggsave(
   "BIDR_SelfDeceptive_plot.png", plot = last_plot(), 
@@ -776,7 +799,7 @@ ggstatsplot::ggbetweenstats(
     title = "Balanced Inventory of Desirable Responding - Impression Management Score")
 ```
 
-```{R Study3 BIDR impression output, eval=FALSE, include=TRUE}
+```{R Study3 BIDR impression output, echo=TRUE}
 apa.aov.table(ANOVA_study3_BIDR2, filename = "Exp3 BIDR2 ANOVA.doc",table.number = 9)
 ggsave(
   "BIDR_ImpressionManagement_plot.png", plot = last_plot(), 
@@ -866,7 +889,7 @@ Only include participants that saw study 1 before study 2.
 ```{r S1 ANOVA-A}
 
 df_s1 <- cleaned_df %>% filter(study_order == "Exp1First")
-#write.csv(df_s1, "stimulated_cleaned_study1.csv",fileEncoding = "UTF-8")
+write.csv(df_s1, "stimulated_cleaned_study1.csv",fileEncoding = "UTF-8")
 
 # DV1 Probability of hiring the candicate
 jmv::ANOVA(
@@ -883,6 +906,17 @@ jmv::ANOVA(
 ANOVA_exp1_DV1 <- lm(Exp1_prob_hiring ~ condition, data = df_s1)
 #apa.aov.table(ANOVA_exp1_DV1, filename = "Exp1 DV1 ANOVA.doc",table.number = 10)
 
+# plot ggstatsplot
+ggstatsplot::ggbetweenstats(
+    data = df_s1,
+    y = Exp1_prob_hiring,
+    x = condition,
+    originaltheme = TRUE,
+    ylab = "Study 1 Likelihood of hiring",
+    xlab = "Conditions")
+```
+
+```{R S1DV2 A}
 # DV2 Perceived loyalty of the candidate
 jmv::ANOVA(
     formula = Exp1_loyalty ~ condition,
@@ -898,6 +932,17 @@ jmv::ANOVA(
 ANOVA_exp1_DV2 <- lm(Exp1_loyalty ~ condition, data = df_s1)
 #apa.aov.table(ANOVA_exp1_DV2, filename = "Exp1 DV2 ANOVA.doc",table.number = 11)
 
+# plot ggstatsplot
+ggstatsplot::ggbetweenstats(
+    data = df_s1,
+    y = Exp1_loyalty,
+    x = condition,
+    originaltheme = TRUE,
+    ylab = "Study 1 Perceived Loyalty",
+    xlab = "Conditions")
+```
+
+```{R S1DV3 A}
 # DV3 Perceived honesty of the candidate
 jmv::ANOVA(
     formula = Exp1_honesty ~ condition,
@@ -913,16 +958,49 @@ jmv::ANOVA(
 ANOVA_exp1_DV3 <- lm(Exp1_honesty ~ condition, data = df_s1)
 #apa.aov.table(ANOVA_exp1_DV3, filename = "Exp1 DV3 ANOVA.doc",table.number = 12)
 
+# plot ggstatsplot 
+ggstatsplot::ggbetweenstats(
+    data = df_s1,
+    y = Exp1_honesty,
+    x = condition,
+    originaltheme = TRUE,
+    ylab = "Study 1 Perceived Honesty",
+    xlab = "Conditions")
+
 ```
 
 ## Study 2 - Repeated ANOVA
 
 Only include participants that saw study 2 before study 1.
 
-```{r S2 ANOVA-A}
+Pivot to long format for ggstatsplot.
+```{r study 2 pivot longer - A}
+# add a column of unique participant ID
+cleaned_df <- dplyr::mutate(cleaned_df, ID = row_number())
 
 df_s2 <- cleaned_df %>% filter(study_order == "Exp2First")
 #write.csv(df_s2, "stimulated_cleaned_study2.csv",fileEncoding = "UTF-8")
+
+#pivot longer
+df_s2DV1A <- pivot_longer(df_s2, cols = c(Exp2_S1_seen_wrong, Exp2_S2_seen_wrong_T2),names_to = "scenario",values_to = "Exp2_seen_wrong") 
+df_s2DV2A <- pivot_longer(df_s2, cols = c(Exp2_S1_self_action, Exp2_S2_self_action_T2),names_to = "scenario",values_to = "Exp2_self_action") 
+df_s2DV3A <- pivot_longer(df_s2, cols = c(Exp2_S1_guide_other, Exp2_S2_guide_other_T2),names_to = "scenario",values_to = "Exp2_guide_other") 
+
+# combine three DVs
+df_s2longA <- df_s2DV1A %>% dplyr::select("ID","condition","scenario","Exp2_seen_wrong") %>% dplyr::mutate(Exp2_seen_wrong = as.numeric(Exp2_seen_wrong)) %>%
+  cbind(Exp2_self_action = as.numeric(df_s2DV2A$Exp2_self_action)) %>%
+  cbind(Exp2_guide_other = as.numeric(df_s2DV3A$Exp2_guide_other))
+
+# rename the scenario variable for plotting 
+df_s2longA <- df_s2longA %>% 
+  mutate(scenario = case_when(
+    scenario == "Exp2_S1_seen_wrong" ~ "Scenario 1 Leaking interview questions",
+    scenario == "Exp2_S2_seen_wrong_T2" ~ "Scenario 2 Changing used product"))
+
+```
+
+Study 2 DV1 - Perception of suggested actions as wrong.
+```{r S2 DV1 ANOVA A}
 
 jmv::anovaRM(
     data = df_s2,
@@ -946,7 +1024,28 @@ jmv::anovaRM(
     emmTables = TRUE,
     groupSumm = TRUE)
 
+# ggstatsplot for condition comparisons in between-subjects designs repeated across all levels of a grouping variable.
+# link to tutorial: https://indrajeetpatil.github.io/ggstatsplot/reference/grouped_ggbetweenstats.html
 
+ggstatsplot::grouped_ggbetweenstats(
+  data = df_s2longA,
+  y = Exp2_seen_wrong,
+  x = condition,
+  grouping.var = scenario,
+  ylab = "Perceived unethicality",
+  xlab = "Conditions"
+  ) 
+```
+
+```{R Study2DV1 plot A, eval=FALSE, include=TRUE}
+ggsave(
+  "Study2DV1SeenWrong.png", plot = last_plot(),
+  width = 11.8, height = 6, dpi = 600)
+
+```
+
+Study 2 DV2 - Likelihood of the self conducting similar behavior.
+```{r S2 DV2 ANOVA A}
 jmv::anovaRM(
     data = df_s2,
     rm = list(
@@ -969,9 +1068,28 @@ jmv::anovaRM(
     emmTables = TRUE,
     groupSumm = TRUE)
 
+ggstatsplot::grouped_ggbetweenstats(
+  data = df_s2longA,
+  y = Exp2_self_action,
+  x = condition,
+  grouping.var = scenario,
+  ylab = "Likelihood of the self conducting suggested behavior",
+  xlab = "Conditions"
+  ) 
 
+```
+
+```{R Study2DV2 plot A, eval=FALSE, include=TRUE}
+ggsave(
+  "Study2DV2SelfAction.png", plot = last_plot(),
+  width = 11.8, height = 6, dpi = 600)
+
+```
+
+Study 2 DV3 - Likelihood of advising others to perform unethical but self-benefiting behavior.
+```{r S2 DV3 ANOVA A}
 jmv::anovaRM(
-    data = df_s2,
+    data = cleaned_df,
     rm = list(
         list(
             label="scenario",
@@ -992,7 +1110,22 @@ jmv::anovaRM(
     emmTables = TRUE,
     groupSumm = TRUE)
 
+ggstatsplot::grouped_ggbetweenstats(
+  data = df_s2long,
+  y = Exp2_guide_other,
+  x = condition,
+  grouping.var = scenario,
+  ylab = "Likelihood of advising others to behave unethically",
+  xlab = "Conditions"
+  ) 
 ```
+
+```{R Study2DV3 plot A, eval=FALSE, include=TRUE}
+ggsave(
+  "Study2DV3AdviseOthers.png", plot = last_plot(),
+  width = 11.8, height = 6, dpi = 600)
+```
+
 
 ## Testing order effect as a moderator 
 note: the moderator pacakge is not yet available for the current version of R, hence we pasted all code on running moderation analysis from JAMOVI, but will provide the analysis and result in a separate .omv file. 

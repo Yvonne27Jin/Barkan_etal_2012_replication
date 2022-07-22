@@ -51,10 +51,10 @@
 \clbrdrt\brdrw15\brdrs
 \clvertalc\cellx9806 
 \pard\sa0\sb0\intbl\qr{(Intercept)}\cell
-\pard\sa0\sb0\intbl\tqdec\tldot\tx778{11198.44}\cell
+\pard\sa0\sb0\intbl\tqdec\tldot\tx778{9666.33}\cell
 \pard\sa0\sb0\intbl\qc{1}\cell
-\pard\sa0\sb0\intbl\tqdec\tldot\tx778{11198.44}\cell
-\pard\sa0\sb0\intbl\tqdec\tldot\tx622{1172.64}\cell
+\pard\sa0\sb0\intbl\tqdec\tldot\tx778{9666.33}\cell
+\pard\sa0\sb0\intbl\tqdec\tldot\tx622{1000.94}\cell
 \pard\sa0\sb0\intbl\qc{.000}\cell
 \pard\sa0\sb0\intbl\qc{}\cell
 \pard\sa0\sb0\intbl\qc{}\cell
@@ -71,11 +71,11 @@
 \clvertalc\cellx8438 
 \clvertalc\cellx9806 
 \pard\sa0\sb0\intbl\qr{condition}\cell
-\pard\sa0\sb0\intbl\tqdec\tldot\tx778{93.95}\cell
+\pard\sa0\sb0\intbl\tqdec\tldot\tx778{89.57}\cell
 \pard\sa0\sb0\intbl\qc{4}\cell
-\pard\sa0\sb0\intbl\tqdec\tldot\tx778{23.49}\cell
-\pard\sa0\sb0\intbl\tqdec\tldot\tx622{2.46}\cell
-\pard\sa0\sb0\intbl\qc{.044}\cell
+\pard\sa0\sb0\intbl\tqdec\tldot\tx778{22.39}\cell
+\pard\sa0\sb0\intbl\tqdec\tldot\tx622{2.32}\cell
+\pard\sa0\sb0\intbl\qc{.056}\cell
 \pard\sa0\sb0\intbl\qc{.01}\cell
 \pard\sa0\sb0\intbl\qc{[.00, .02]}\cell
 \row
@@ -99,9 +99,9 @@
 \clbrdrb\brdrw15\brdrs
 \clvertalc\cellx9806 
 \pard\sa0\sb0\intbl\qr{Error}\cell
-\pard\sa0\sb0\intbl\tqdec\tldot\tx778{8413.35}\cell
-\pard\sa0\sb0\intbl\qc{881}\cell
-\pard\sa0\sb0\intbl\tqdec\tldot\tx778{9.55}\cell
+\pard\sa0\sb0\intbl\tqdec\tldot\tx778{7339.51}\cell
+\pard\sa0\sb0\intbl\qc{760}\cell
+\pard\sa0\sb0\intbl\tqdec\tldot\tx778{9.66}\cell
 \pard\sa0\sb0\intbl\tqdec\tldot\tx622{}\cell
 \pard\sa0\sb0\intbl\qc{}\cell
 \pard\sa0\sb0\intbl\qc{}\cell

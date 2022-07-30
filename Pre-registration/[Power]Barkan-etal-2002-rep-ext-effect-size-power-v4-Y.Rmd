@@ -1,0 +1,124 @@
+---
+title: "Barkan etal (2012) effect size calculations & power analysis"
+author: "Yvonne JIN"
+date: "07/30/2022"
+output:
+  pdf_document: default
+  html_document: default
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE)
+
+## Download packages load packages
+list.of.packages <- c("MBESS", "MOTE","pwr")
+
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+if(length(new.packages)) install.packages(new.packages, dependencies = TRUE)
+
+invisible(lapply(list.of.packages, library, character.only = TRUE))
+
+Sys.setenv(LANG = "en")
+options(scipen=999.99, digits =5)
+```
+
+# Effect Size calculation
+
+```{r effect size}
+
+# Study 1
+
+# Manipulation check - S1
+eta.F(dfm = 3, # Model degree of freedom
+      dfe = 137, # Error/residual degree of freedom
+      Fvalue = 17.89,
+      a = .10) # Alpha level, set to .10 to obtain 90% CI
+
+## likelihood of hiring
+eta.F(dfm = 3, # Model degree of freedom
+      dfe = 137, # Error/residual degree of freedom
+      Fvalue = 12.13,
+      a = .10) # Alpha level, set to .10 to obtain 90% CI
+## loyalty to company
+eta.F(dfm = 3, dfe = 137, Fvalue = 3.54, a = .10) 
+# honesty on the job
+eta.F(dfm = 3, dfe = 137, Fvalue = 3.75, a = .10) 
+
+# Study 2
+## perceived unethicality
+eta.F(dfm = 2, # Model degree of freedom
+      dfe = 146, # Error/residual degree of freedom
+      Fvalue = 5.82,
+      a = .10) # Alpha level, set to .10 to obtain 90% CI
+## self to behave unethically
+eta.F(dfm = 2, dfe = 146, Fvalue = 6.82, a = .10) 
+## encourage friend to behave unethically
+eta.F(dfm = 2, dfe = 146, Fvalue = 9.74, a = .10) 
+
+
+# study 3
+## calculate Cohen's d from means, standard deviations, and group sample sizes.
+## MASC - set 1
+d.ind.t(m1 = 5.15, m2 = 4.64, sd1 = 0.80, sd2 = 0.79, n1 = 34, n2 = 34, a = 0.05)
+## MASC - set 2
+d.ind.t(m1 = 4.52, m2 = 3.96, sd1 = 0.91, sd2 = 1.16, n1 = 34, n2 = 34, a = 0.05)
+## MASC - set 3 (repoted ANOVA F-statistics)
+eta.F(dfm = 1, dfe = 66,Fvalue = 5.15, a = .05) 
+
+## BIDR - self-deceptive positivity
+d.ind.t(m1 = 4.19, m2 = 4.20, sd1 = 0.66, sd2 = 0.43, n1 = 34, n2 = 34, a = 0.05)
+## BIDR - impression management
+d.ind.t(m1 = 3.62, m2 = 3.13, sd1 = 0.89, sd2 = 0.76, n1 = 34, n2 = 34, a = 0.05)
+```
+
+# Power analysis
+
+eta^2 = f^2 / ( 1 + f^2 ), namely f = sqr( eta^2 / ( 1 - eta^2 ) )
+
+## Study 1
+```{r power analysis S1}
+## same analysis (one-way ANOVA) for three DVs, those the smallest effect to do power analysis
+## one-way anova of loyalty to company
+
+etasquared <- 0.21
+f1 <- sqrt( etasquared  / ( 1 - etasquared  ) )
+
+etasquared <- 0.07
+f1 <- sqrt( etasquared  / ( 1 - etasquared  ) )
+pwr.anova.test(k = 5,
+               f = f1,
+               sig.level = 0.05,
+               power = 0.95)
+n1 <- 50.307*5
+n1
+
+
+etasquared <- 0.08
+f1 <- sqrt( etasquared  / ( 1 - etasquared  ) )
+
+```
+
+## Study 2
+
+```{r power analysis S2}
+# same analysis (repeated-measure ANOVA) for three DVs, those the smallest effect to do power analysis
+# one-way anova of perceived unethicality of behaviors
+
+# perceived unethicality
+etasquared <- 0.07
+f1 <- sqrt( etasquared  / ( 1 - etasquared  ) )
+
+# self to behave unethically
+etasquared <- 0.09
+f1 <- sqrt( etasquared  / ( 1 - etasquared  ) )
+
+# encouraging the friend to behave unethically
+etasquared <- 0.12
+f1 <- sqrt( etasquared  / ( 1 - etasquared  ) )
+
+```
+
+Power analysis performed using G power for repeated ANOVA, screenshot of the result is attached in the supplementary "power analysis" section.
+

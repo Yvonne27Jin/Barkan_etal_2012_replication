@@ -1,3 +1,3 @@
 # Barkan_etal_2012_replication
 
-![proUkraineAfter](https://github.com/user-attachments/assets/21ee5634-02e3-43e9-a44a-181f7c88cc9d)
+![Study1DV1Hiring](https://github.com/user-attachments/assets/b5878d9c-23ba-422b-8baf-6e6674e3a634)
